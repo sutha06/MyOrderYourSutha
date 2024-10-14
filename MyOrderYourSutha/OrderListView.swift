@@ -54,7 +54,7 @@ struct EditOrderView: View {
     var viewModel: OrderViewModel
     @State private var editedPizzaType: String = ""
     @State private var editedSize: String = ""
-    @State private var editedAmount: Double = .zero
+    @State private var editedQuantity: Double = .zero
     @State private var editedCrustType: String = ""
     @Environment(\.presentationMode) var presentationMode
     
@@ -84,8 +84,8 @@ struct EditOrderView: View {
                 }
             }
             
-            Text("Amount of Pizza: \(Int(editedAmount))")
-            Slider(value: $editedAmount, in: 0...10) {
+            Text("Amount of Pizza: \(Int(editedQuantity))")
+            Slider(value: $editedQuantity, in: 0...10) {
                 Text("Slider")
             } minimumValueLabel: {
                 Text("0").font(.title2).fontWeight(.thin)
@@ -100,7 +100,7 @@ struct EditOrderView: View {
                     id: order.id ?? UUID(),
                     newpizza_type: editedPizzaType,
                     newSize: editedSize,
-                    newQuantity: String(Int(editedAmount)),
+                    newQuantity: String(Int(editedQuantity)),
                     newDate: order.date ?? Date(),
                     newcrust_type: editedCrustType
                 )
@@ -111,7 +111,7 @@ struct EditOrderView: View {
         .onAppear {
             editedPizzaType = order.pizza_type ?? ""
             editedSize = order.size ?? ""
-            editedAmount = Double(order.quantity)
+            editedQuantity = Double(order.quantity)
             editedCrustType = order.crust_type ?? ""
         }
     }

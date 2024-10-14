@@ -1,16 +1,17 @@
 import SwiftUI
+import CoreData
 
 struct ContentView: View {
     @ObservedObject var viewModel: OrderViewModel
     
-    @State private var selectedSize = ""
-    @State private var selectedToppings = ""
-    @State private var selectedCrust = ""
-    @State private var pizzaAmount: Double = .zero
+    @State private var selectedSize = "Select Size"
+    @State private var selectedToppings = "Select Toppings"
+    @State private var selectedCrust = "Select Crust"
+    @State private var pizzaQuantity: Double = .zero
 
-    let pizzaSizes = ["Small", "Medium", "Large"]
-    let pizzaToppings = ["Cheese", "Pepperoni", "Veggie", "Meat Lovers", "Hawaiian"]
-    let crustTypes = ["Thin", "Regular", "Thick"]
+    let pizzaSizes = ["Select Size", "Small", "Medium", "Large"]
+    let pizzaToppings = ["Select Toppings", "Cheese", "Pepperoni", "Veggie", "Meat Lovers", "Hawaiian"]
+    let crustTypes = ["Select Crust", "Thin", "Regular", "Thick"]
 
     var body: some View {
         NavigationView {
@@ -22,7 +23,7 @@ struct ContentView: View {
                         }
                     }
 
-                    Picker("Toppings", selection: $selectedToppings) {
+                    Picker("Topping", selection: $selectedToppings) {
                         ForEach(pizzaToppings, id: \.self) { item in
                             Text(item)
                         }
@@ -34,8 +35,8 @@ struct ContentView: View {
                         }
                     }
 
-                    Text("Amount of Pizza: \(Int(pizzaAmount))")
-                    Slider(value: $pizzaAmount, in: 0...10) {
+                    Text("Amount of Pizza: \(Int(pizzaQuantity))")
+                    Slider(value: $pizzaQuantity, in: 0...10) {
                         Text("Slider")
                     } minimumValueLabel: {
                         Text("0").font(.title2).fontWeight(.thin)
@@ -44,26 +45,39 @@ struct ContentView: View {
                     }
                     .tint(.red)
                     .padding()
-
-                    Button("Make Order") {
-                        viewModel.addPizzaOrder(
-                            pizza_type: selectedToppings,
-                            size: selectedSize,
-                            quantity: String(Int(pizzaAmount)),
-                            date: Date(),
-                            crust_type: selectedCrust
-                        )
-                       
-                        // Reset selections
-                        selectedSize = ""
-                        selectedToppings = ""
-                        selectedCrust = ""
-                        pizzaAmount = 0
-                    }
+                    
+                    if !isValidSelection() {
+                        Text("Please select a size, topping, crust type, and quantity")
+                            .foregroundColor(.red)
+                                }
+                    
                 }
+                Button("Make Order") {
+                    viewModel.addPizzaOrder(
+                        pizza_type: selectedToppings,
+                        size: selectedSize,
+                        quantity: String(Int(pizzaQuantity)),
+                        date: Date(),
+                        crust_type: selectedCrust
+                    )
+                   
+                    // Reset selections
+                    selectedSize = "Select Size"
+                    selectedToppings = "Select Toppings"
+                    selectedCrust = "Select Crust"
+                    pizzaQuantity = 0
+                }
+                .disabled(!isValidSelection())
             }
             .navigationTitle("Suthas Pizza Shop")
         }
+        
+    }
+    func isValidSelection() -> Bool {
+        return selectedSize != "Select Size" &&
+               selectedToppings != "Select Toppings" &&
+               selectedCrust != "Select Crust" &&
+        pizzaQuantity > 0
     }
 }
 
