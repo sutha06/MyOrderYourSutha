@@ -1,86 +1,72 @@
-//
-//  ContentView.swift
-//  MyOrderYourSutha
-//
-//  Created by Suthakaran Siva on 2024-10-10.
-//
-
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
+    @ObservedObject var viewModel: OrderViewModel
+    
+    @State private var selectedSize = ""
+    @State private var selectedToppings = ""
+    @State private var selectedCrust = ""
+    @State private var pizzaAmount: Double = .zero
 
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
+    let pizzaSizes = ["Small", "Medium", "Large"]
+    let pizzaToppings = ["Cheese", "Pepperoni", "Veggie", "Meat Lovers", "Hawaiian"]
+    let crustTypes = ["Thin", "Regular", "Thick"]
 
     var body: some View {
         NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+            Form {
+                Section("Make Your Order") {
+                    Picker("Pick a Size", selection: $selectedSize) {
+                        ForEach(pizzaSizes, id: \.self) { item in
+                            Text(item)
+                        }
+                    }
+
+                    Picker("Toppings", selection: $selectedToppings) {
+                        ForEach(pizzaToppings, id: \.self) { item in
+                            Text(item)
+                        }
+                    }
+
+                    Picker("Crust Type", selection: $selectedCrust) {
+                        ForEach(crustTypes, id: \.self) { item in
+                            Text(item)
+                        }
+                    }
+
+                    Text("Amount of Pizza: \(Int(pizzaAmount))")
+                    Slider(value: $pizzaAmount, in: 0...10) {
+                        Text("Slider")
+                    } minimumValueLabel: {
+                        Text("0").font(.title2).fontWeight(.thin)
+                    } maximumValueLabel: {
+                        Text("10").font(.title2).fontWeight(.thin)
+                    }
+                    .tint(.red)
+                    .padding()
+
+                    Button("Make Order") {
+                        viewModel.addPizzaOrder(
+                            pizza_type: selectedToppings,
+                            size: selectedSize,
+                            quantity: String(Int(pizzaAmount)),
+                            date: Date(),
+                            crust_type: selectedCrust
+                        )
+                       
+                        // Reset selections
+                        selectedSize = ""
+                        selectedToppings = ""
+                        selectedCrust = ""
+                        pizzaAmount = 0
                     }
                 }
-                .onDelete(perform: deleteItems)
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            .navigationTitle("Suthas Pizza Shop")
         }
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
-
 #Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    ContentView(viewModel: OrderViewModel())
 }
